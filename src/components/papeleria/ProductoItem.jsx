@@ -1,4 +1,3 @@
-// src/components/papeleria/ProductoItem.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaEdit, FaTrashAlt, FaEye } from 'react-icons/fa';

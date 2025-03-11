@@ -26,25 +26,16 @@ const create = async (data) => {
 };
 
 const update = async (id, data) => {
-
-  const isFormData = data instanceof FormData;
-  
-  const config = isFormData ? {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    }
-  } : {};
-  
-
-  if (isFormData) {
-    data.append('_method', 'PUT'); 
-    const response = await api.post(`/papeleria/${id}`, data, config);
+  try {
+    // Asegúrate de que el id es válido y los datos son correctos
+    console.log(`Actualizando producto ${id} con datos:`, data);
+    const response = await api.put(`/papeleria/${id}`, data);
     return response.data;
-  } else {
-    const response = await api.put(`/papeleria/${id}`, data, config);
-    return response.data;
+  } catch (error) {
+    console.error('Error en la actualización:', error.response?.data || error);
+    throw error;
   }
-};
+}
 
 const remove = async (id) => {
   const response = await api.delete(`/papeleria/${id}`);

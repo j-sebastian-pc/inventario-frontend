@@ -50,15 +50,25 @@ const ProductosList = () => {
     }
   };
 
-  const handleSave = async () => {
-    try {
-      await papeleriaService.update(editingProduct.id_papeleria, editingProduct);
-      fetchProductos();
-      setShowModal(false);
-    } catch (err) {
-      setError('Error al actualizar el producto.');
-    }
-  };
+const handleSave = async () => {
+  try {
+    const dataToSend = {
+      tipo_papeleria: editingProduct.tipo_papeleria,
+      cantidad_papeleria: editingProduct.cantidad_papeleria,
+      oficina_papeleria: editingProduct.oficina_papeleria,
+      fecha_papeleria: editingProduct.fecha_papeleria,
+      fechaAsesor_papeleria: editingProduct.fechaAsesor_papeleria
+    };
+    
+    console.log('Datos a enviar:', dataToSend);
+    await papeleriaService.update(editingProduct.id_papeleria, dataToSend);
+    fetchProductos();
+    setShowModal(false);
+  } catch (err) {
+    console.error('Error completo:', err);
+    setError('Error al actualizar el producto.');
+  }
+};
 
   return (
     <div className="container py-4">
