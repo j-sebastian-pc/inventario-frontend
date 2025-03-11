@@ -22,6 +22,7 @@ const AuthenticatedLayout = ({ children }) => {
   );
 };
 
+// Rutas protegidas por autenticación de usuario
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
   
@@ -32,6 +33,7 @@ const PrivateRoute = ({ children }) => {
   return user ? <AuthenticatedLayout>{children}</AuthenticatedLayout> : <Navigate to="/login" />;
 };
 
+// Rutas públicas que no requieren autenticación
 const PublicRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
   

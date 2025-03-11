@@ -1,14 +1,16 @@
-// src/components/papeleria/ProductosList.jsx
 import React, { useState, useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 import papeleriaService from '../../services/papeleriaService';
 import { AuthContext } from '../../context/AuthContext';
-import ProductoItem from './ProductoItem';
+import { Modal, Button, Table, Form } from 'react-bootstrap';
+
 
 const ProductosList = () => {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
   const { isAdmin } = useContext(AuthContext);
 
   useEffect(() => {
@@ -16,64 +18,118 @@ const ProductosList = () => {
   }, []);
 
   const fetchProductos = async () => {
+    setLoading(true);
+    setError(""); 
     try {
-      const response = await papeleriaService.getAll();
-      setProductos(response.productos || []);
-      setError('');
+        const response = await papeleriaService.getAll();
+        if (!response || !response.productos) {
+            throw new Error("Datos no válidos");
+        }
+        setProductos(response.productos);
     } catch (err) {
-      setError('Error al cargar los productos. Por favor, intenta de nuevo.');
-      console.error(err);
+        setError(err.message || "Error al cargar los productos. Intenta de nuevo.");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
+};
+
+
+  const handleEdit = (producto) => {
+    setEditingProduct(producto);
+    setShowModal(true);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar este producto?')) {
+    if (window.confirm('¿Estás seguro de eliminar este producto?')) {
       try {
-        await papeleriaService.remove(id);
-        setProductos(productos.filter(producto => producto.id !== id));
+        await papeleriaService.delete(id);
+        fetchProductos();
       } catch (err) {
         setError('Error al eliminar el producto.');
-        console.error(err);
       }
     }
   };
 
-  if (loading) {
-    return <div className="text-center mt-5">Cargando productos...</div>;
-  }
+  const handleSave = async () => {
+    try {
+      await papeleriaService.update(editingProduct.id_papeleria, editingProduct);
+      fetchProductos();
+      setShowModal(false);
+    } catch (err) {
+      setError('Error al actualizar el producto.');
+    }
+  };
 
   return (
-    <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Lista de Productos</h2>
-        {isAdmin() && (
-          <Link to="/productos/nuevo" className="btn btn-primary">
-            Agregar Producto
-          </Link>
-        )}
-      </div>
-
-      {error && <div className="alert alert-danger">{error}</div>}
-
-      {productos.length === 0 ? (
-        <div className="alert alert-info">
-          No hay productos disponibles en este momento.
-        </div>
-      ) : (
-        <div className="row">
-          {productos.map(producto => (
-            <div key={producto.id} className="col-md-4 mb-4">
-              <ProductoItem 
-                producto={producto} 
-                onDelete={handleDelete} 
-                isAdmin={isAdmin()} 
-              />
-            </div>
-          ))}
-        </div>
+    <div className="container py-4">
+      <h2>Lista de Productos</h2>
+      {isAdmin && (
+        <Button variant="success" className="mb-3">
+          <FaPlus /> Agregar Producto
+        </Button>
       )}
+      {error && <div className="alert alert-danger">{error}</div>}
+      {loading ? (
+        <p>Cargando...</p>
+      ) : (
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tipo</th>
+              <th>Cantidad</th>
+              <th>Oficina</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {productos.map((producto) => (
+              <tr key={producto.id_papeleria}>
+                <td>{producto.id_papeleria}</td>
+                <td>{producto.tipo_papeleria}</td>
+                <td>{producto.cantidad_papeleria}</td>
+                <td>{producto.oficina_papeleria}</td>
+                <td>{producto.fecha_papeleria}</td>
+                <td>
+                  <Button variant="primary" onClick={() => handleEdit(producto)} className="me-2">
+                    <FaEdit />
+                  </Button>
+                  <Button variant="danger" onClick={() => handleDelete(producto.id_papeleria)}>
+                    <FaTrash />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
+      {/* Modal para editar */}
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Editar Producto</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Tipo</Form.Label>
+              <Form.Control type="text" value={editingProduct?.tipo_papeleria || ''} onChange={(e) => setEditingProduct({ ...editingProduct, tipo_papeleria: e.target.value })} />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Cantidad</Form.Label>
+              <Form.Control type="number" value={editingProduct?.cantidad_papeleria || ''} onChange={(e) => setEditingProduct({ ...editingProduct, cantidad_papeleria: e.target.value })} />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Oficina</Form.Label>
+              <Form.Control type="text" value={editingProduct?.oficina_papeleria || ''} onChange={(e) => setEditingProduct({ ...editingProduct, oficina_papeleria: e.target.value })} />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>Cerrar</Button>
+          <Button variant="primary" onClick={handleSave}>Guardar cambios</Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

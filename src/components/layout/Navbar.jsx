@@ -1,127 +1,187 @@
-import React, { useState, useContext, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState, useContext } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { 
+  FaHome, 
+  FaBox, 
+  FaShoppingCart, 
+  FaUsers, 
+  FaChartLine, 
+  FaBell, 
+  FaUserCircle, 
+  FaBars, 
+  FaSignOutAlt 
+} from "react-icons/fa";
 import { AuthContext } from "../../context/AuthContext";
-import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react";
 
-const Login = () => {
-  const [credentials, setCredentials] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const { login } = useContext(AuthContext);
+const Navbar = () => {
+  const location = useLocation();
   const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const handleChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setCredentials((prev) => ({ ...prev, [name]: value }));
-    setError("");
-  }, []);
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
 
-  const handleSubmit = useCallback(
-    async (e) => {
-      e.preventDefault();
-      setLoading(true);
-      setError("");
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
 
-      try {
-        await login(credentials);
-        navigate("/");
-      } catch (err) {
-        setError(err.response?.data?.error || "Error al iniciar sesión");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [credentials, login, navigate]
-  );
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
-  const togglePasswordVisibility = useCallback(() => {
-    setShowPassword((prev) => !prev);
-  }, []);
+  const toggleDropdown = () => {
+    setDropdownOpen(!dropdownOpen);
+  };
+
+  const navLinks = [
+    { path: "/", icon: <FaHome />, text: "Inicio" },
+    { path: "/productos", icon: <FaBox />, text: "Productos" },
+    { path: "/ventas", icon: <FaShoppingCart />, text: "Ventas" },
+    { path: "/usuarios", icon: <FaUsers />, text: "Usuarios" },
+    { path: "/estadisticas", icon: <FaChartLine />, text: "Estadísticas" }
+  ];
 
   return (
-    <div className="container d-flex justify-content-center align-items-center vh-100">
-      <div className="card p-4 shadow-lg" style={{ width: "400px" }}>
-        <h2 className="text-center mb-3">Iniciar Sesión</h2>
-
-        {error && <div className="alert alert-danger">{error}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label htmlFor="email" className="form-label">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              name="email"
-              value={credentials.email}
-              onChange={handleChange}
-              required
-              disabled={loading}
-              className="form-control"
-              placeholder="tucorreo@ejemplo.com"
-            />
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="password" className="form-label">
-              Contraseña
-            </label>
-            <div className="input-group">
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={credentials.password}
-                onChange={handleChange}
-                required
-                disabled={loading}
-                className="form-control"
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={togglePasswordVisibility}
-                className="btn btn-outline-secondary"
-              >
-                {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn btn-primary w-100"
+    <>
+      {/* Navbar superior */}
+      <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div className="container-fluid">
+          <button 
+            className="navbar-toggler border-0"
+            type="button"
+            onClick={toggleSidebar}
           >
-            {loading ? (
-              <>
-                <Loader2 className="loading-icon me-2" size={18} />
-                Iniciando...
-              </>
-            ) : (
-              "Iniciar Sesión"
-            )}
+            <FaBars />
           </button>
-        </form>
+          
+          <Link className="navbar-brand" to="/">
+            <FaBox className="me-2" />
+            Mi Aplicación
+          </Link>
 
-        <div className="text-center mt-3">
-          <p>
-            ¿No tienes cuenta?{" "}
-            <Link to="/register" className="text-primary">
-              Regístrate aquí
-            </Link>
-          </p>
-          <p>
-            <Link to="/forgot-password" className="text-primary">
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </p>
+          {/* Enlaces de navegación para pantallas grandes */}
+          <div className="collapse navbar-collapse">
+            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+              {navLinks.map((link) => (
+                <li className="nav-item" key={link.path}>
+                  <Link
+                    to={link.path}
+                    className={`nav-link ${isActive(link.path) ? "active" : ""}`}
+                  >
+                    {React.cloneElement(link.icon, { className: "me-1" })}
+                    {link.text}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Menú de usuario */}
+          <div className="dropdown">
+            <button
+              className="btn btn-link nav-link text-white dropdown-toggle d-flex align-items-center"
+              type="button"
+              onClick={toggleDropdown}
+              aria-expanded={dropdownOpen}
+            >
+              <FaUserCircle className="me-1" />
+              <span className="d-none d-md-inline">
+                {user ? user.name : "Usuario"}
+              </span>
+            </button>
+            
+            {dropdownOpen && (
+              <ul className="dropdown-menu dropdown-menu-end show">
+                <li>
+                  <Link className="dropdown-item" to="/perfil">
+                    Mi Perfil
+                  </Link>
+                </li>
+                <li>
+                  <hr className="dropdown-divider" />
+                </li>
+                <li>
+                  <button className="dropdown-item text-danger" onClick={handleLogout}>
+                    <FaSignOutAlt className="me-2" />
+                    Cerrar Sesión
+                  </button>
+                </li>
+              </ul>
+            )}
+          </div>
         </div>
-      </div>
-    </div>
+      </nav>
+
+      {/* Sidebar para móviles */}
+      {isSidebarOpen && (
+        <div className="sidebar bg-dark text-white" 
+             style={{
+               position: "fixed",
+               top: "56px",
+               left: "0",
+               width: "250px",
+               height: "calc(100vh - 56px)",
+               zIndex: "1030",
+               overflowY: "auto",
+               transition: "all 0.3s ease"
+             }}>
+          <div className="p-3">
+            <div className="d-flex align-items-center mb-3 pb-3 border-bottom">
+              <FaUserCircle className="me-2" size={24} />
+              <span>{user ? user.name : "Usuario"}</span>
+            </div>
+            <ul className="nav flex-column">
+              {navLinks.map((link) => (
+                <li className="nav-item mb-2" key={link.path}>
+                  <Link
+                    to={link.path}
+                    className={`nav-link ${isActive(link.path) ? "active bg-primary" : "text-white"}`}
+                    onClick={() => setIsSidebarOpen(false)}
+                  >
+                    {React.cloneElement(link.icon, { className: "me-2" })}
+                    {link.text}
+                  </Link>
+                </li>
+              ))}
+              <li className="nav-item">
+                <button
+                  className="nav-link text-danger border-0 bg-transparent"
+                  onClick={handleLogout}
+                >
+                  <FaSignOutAlt className="me-2" />
+                  Cerrar Sesión
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Overlay para cerrar el sidebar al hacer clic fuera */}
+      {isSidebarOpen && (
+        <div 
+          style={{
+            position: "fixed",
+            top: "56px",
+            left: "0",
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.5)",
+            zIndex: "1029"
+          }}
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
+    </>
   );
 };
 
-export default Login;
+export default Navbar;

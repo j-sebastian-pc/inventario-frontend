@@ -9,62 +9,76 @@ const Login = () => {
     email: "",
     password: "",
   });
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [formState, setFormState] = useState({
+    error: "",
+    success: "",
+    isSubmitting: false,
+    showPassword: false,
+  });
 
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setCredentials((prev) => ({ ...prev, [name]: value }));
-    setError("");
-    setSuccess("");
+    setCredentials(prev => ({ ...prev, [name]: value }));
+    
+    // Limpiar mensajes cuando el usuario modifica los campos
+    if (formState.error || formState.success) {
+      setFormState(prev => ({ ...prev, error: "", success: "" }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    if (isSubmitting) {
-      return;
-    }
-  
-    setIsSubmitting(true);
-    setError("");
-    setSuccess("");
-  
+    
+    if (formState.isSubmitting) return;
+    
+    setFormState(prev => ({
+      ...prev,
+      isSubmitting: true,
+      error: "",
+      success: ""
+    }));
+    
     login(
       credentials,
-      // onSuccess callback
       () => {
-        setSuccess("¡Inicio de sesión exitoso! Redirigiendo al dashboard...");
-        setTimeout(() => {
-          navigate("/dashboard"); // Redirige al dashboard después de 1.5 segundos
-        }, 1500);
+        setFormState(prev => ({
+          ...prev,
+          success: "¡Inicio de sesión exitoso! Redirigiendo al dashboard..."
+        }));
+        
+        // Usar navigate con reemplazo para evitar volver al login con el botón atrás
+        setTimeout(() => navigate("/dashboard", { replace: true }), 1500);
       },
-      // onError callback
       (errorMessage) => {
-        setError(errorMessage);
-        setIsSubmitting(false);
+        setFormState(prev => ({
+          ...prev,
+          error: errorMessage,
+          isSubmitting: false
+        }));
       }
     );
   };
 
   const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
+    setFormState(prev => ({ ...prev, showPassword: !prev.showPassword }));
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center vh-100">
-      <div className="card p-4 shadow-lg" style={{ width: "400px" }}>
+    <div className="container d-flex justify-content-center align-items-center min-vh-100 py-5">
+      <div className="card p-4 shadow-lg" style={{ maxWidth: "400px", width: "100%" }}>
         <h2 className="text-center mb-4">Iniciar Sesión</h2>
 
-        {error && <div className="alert alert-danger text-center">{error}</div>}
-        {success && <div className="alert alert-success text-center">{success}</div>}
+        {formState.error && (
+          <div className="alert alert-danger text-center">{formState.error}</div>
+        )}
+        {formState.success && (
+          <div className="alert alert-success text-center">{formState.success}</div>
+        )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="mb-3">
             <label htmlFor="login-email" className="form-label">
               Email
@@ -76,9 +90,10 @@ const Login = () => {
               value={credentials.email}
               onChange={handleChange}
               required
-              disabled={isSubmitting}
+              disabled={formState.isSubmitting}
               className="form-control"
               placeholder="tucorreo@ejemplo.com"
+              autoComplete="email"
             />
           </div>
 
@@ -89,31 +104,33 @@ const Login = () => {
             <div className="input-group">
               <input
                 id="password-field"
-                type={showPassword ? "text" : "password"}
+                type={formState.showPassword ? "text" : "password"}
                 name="password"
                 value={credentials.password}
                 onChange={handleChange}
                 required
-                disabled={isSubmitting}
+                disabled={formState.isSubmitting}
                 className="form-control"
                 placeholder="••••••••"
+                autoComplete="current-password"
               />
               <button
                 type="button"
                 onClick={togglePasswordVisibility}
                 className="btn btn-outline-secondary"
+                aria-label={formState.showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               >
-                {showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
+                {formState.showPassword ? <EyeOffIcon size={20} /> : <EyeIcon size={20} />}
               </button>
             </div>
           </div>
 
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={formState.isSubmitting}
             className="btn btn-primary w-100"
           >
-            {isSubmitting ? (
+            {formState.isSubmitting ? (
               <>
                 <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                 Iniciando...
@@ -124,14 +141,14 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="text-center mt-3">
-          <p>
+        <div className="text-center mt-4">
+          <p className="mb-2">
             ¿No tienes cuenta?{" "}
             <Link to="/register" className="text-primary">
               Regístrate aquí
             </Link>
           </p>
-          <p>
+          <p className="mb-0">
             <Link to="/forgot-password" className="text-primary">
               ¿Olvidaste tu contraseña?
             </Link>
