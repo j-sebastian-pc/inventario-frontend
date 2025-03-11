@@ -1,0 +1,102 @@
+/* Estilos generales para la barra de navegación */
+.navbar {
+    background-color: #343a40; /* Color de fondo oscuro */
+    padding: 0.5rem 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .navbar-brand {
+    color: #ffffff; /* Color del texto del brand */
+    font-size: 1.25rem;
+    font-weight: bold;
+    text-decoration: none;
+  }
+  
+  .navbar-brand:hover {
+    color: #ffffff;
+  }
+  
+  .navbar-toggler {
+    border: none;
+    background-color: transparent;
+    padding: 0.5rem;
+    cursor: pointer;
+  }
+  
+  .navbar-toggler-icon {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    vertical-align: middle;
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255, 255, 255, 0.5)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+  
+  .navbar-nav {
+    display: flex;
+    flex-direction: row;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .nav-item {
+    margin-left: 1rem;
+  }
+  
+  .nav-link {
+    color: rgba(255, 255, 255, 0.75); /* Color del texto de los enlaces */
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    display: block;
+    transition: color 0.3s ease;
+  }
+  
+  .nav-link:hover {
+    color: #ffffff; /* Color del texto al pasar el mouse */
+  }
+  
+  .nav-link.active {
+    color: #ffffff;
+    font-weight: bold;
+  }
+  
+  .btn-link {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.75);
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  .btn-link:hover {
+    color: #ffffff;
+  }
+  
+  /* Estilos para el menú colapsable en móviles */
+  .collapse.navbar-collapse {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  @media (max-width: 768px) {
+    .navbar-nav {
+      flex-direction: column;
+    }
+  
+    .navbar-toggler {
+      display: block;
+    }
+  
+    .collapse.navbar-collapse {
+      display: none;
+    }
+  
+    .collapse.navbar-collapse.show {
+      display: flex;
+      flex-direction: column;
+    }
+  }
